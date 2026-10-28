@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Visitas e Acompanhantes</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar {
+            background-color: #004080;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .navbar a:hover, .navbar a.active {
+            background-color: #005a9c;
+        }
+
+        .section-view {
+            display: none;
+            padding: 15px;
+        }
+
+        .section-view.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #005a9c;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        .row-label {
+            width: 35%;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .section-header {
+            background-color: #f7f5db;
+            font-weight: bold;
+            font-size: 14px;
+            color: #111;
+            padding: 10px 12px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], 
+        select, 
+        textarea, 
+        input[type="date"], 
+        input[type="time"] {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #7f9db9;
+            border-radius: 2px;
+            font-size: 14px;
+            background-color: #fff;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 40px;
+        }
+
+        .btn-container {
+            padding: 15px;
+            text-align: right;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ccc;
+        }
+
+        .btn-submit {
+            background-color: #005a9c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background-color: #003d6b;
+        }
+
+        .btn-time-now {
+            background-color: #e0e0e0;
+            border: 1px solid #999;
+            padding: 4px 8px;
+            font-size: 11px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .btn-saida {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .btn-saida:hover {
+            background-color: #c9302c;
+        }
+
+        .time-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .history-table th, .history-table td {
+            font-size: 12px;
+            text-align: center;
+        }
+        .history-table th:nth-child(2), .history-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        #msgAlert {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+        .msg-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .msg-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="navbar">
+            <a href="#" id="linkNovo" class="active" onclick="mudarAba('novo')">➕ Registrar Entrada</a>
+            <a href="#" id="linkHistorico" onclick="mudarAba('historico'); carregarHistorico();">📋 Histórico / Dar Saída</a>
+        </div>
+
+        <div id="msgAlert"></div>
+
+        <!-- ABA 1: APENAS ENTRADA -->
+        <div id="abaNovo" class="section-view active">
+            <form id="formControle">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">Campo</th>
+                            <th>Resposta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="row-label">Tipo de Controle</td>
+                            <td>
+                                <select id="tipo_controle" name="tipo_controle" required>
+                                    <option value="VISITA">VISITA</option>
+                                    <option value="ACOMPANHANTE">ACOMPANHANTE</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Nome Completo</td>
+                            <td>
+                                <textarea id="nome" name="nome" required placeholder="Digite o nome completo"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Grau de Parentesco</td>
+                            <td>
+                                <textarea id="parentesco" name="parentesco" placeholder="Ex: GENRO, FILHO(A), CONJUGE"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Documento de Identificação (RG ou CPF)</td>
+                            <td>
+                                <input type="text" id="documento" name="documento" placeholder="Apenas números">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Contato Telefônico</td>
+                            <td>
+                                <input type="text" id="telefone" name="telefone" placeholder="Ex: 11947810434">
+                            </td>
+                        </tr>
+
+                        <!-- SEÇÃO DE ENTRADA -->
+                        <tr>
+                            <td colspan="2" class="section-header">INFORMAÇÕES DE ENTRADA</td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Data de Entrada</td>
+                            <td>
+                                <input type="date" id="data_entrada" name="data_entrada" required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="row-label">Horário de Entrada</td>
+                            <td>
+                                <div class="time-wrapper">
+                                    <input type="time" id="hora_entrada" name="hora_entrada" required>
+                                    <button type="button" class="btn-time-now" onclick="setAgora('data_entrada', 'hora_entrada')">Agora</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn-submit">Salvar Entrada e Limpar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ABA 2: HISTÓRICO COM BOTÃO DE SAÍDA -->
+        <div id="abaHistorico" class="section-view">
+            <h3 style="margin-bottom: 12px; color: #004080;">Gerenciar Saídas e Histórico</h3>
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nome</th>
+                            <th>Parentesco</th>
+                            <th>Entrada</th>
+                            <th>Saída</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaHistoricoCorpo">
+                        <tr>
+                            <td colspan="6">Carregando...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function mudarAba(aba) {
+            document.getElementById('abaNovo').classList.remove('active');
+            document.getElementById('abaHistorico').classList.remove('active');
+            document.getElementById('linkNovo').classList.remove('active');
+            document.getElementById('linkHistorico').classList.remove('active');
+
+            if (aba === 'novo') {
+                document.getElementById('abaNovo').classList.add('active');
+                document.getElementById('linkNovo').classList.add('active');
+            } else {
+                document.getElementById('abaHistorico').classList.add('active');
+                document.getElementById('linkHistorico').classList.add('active');
+            }
+        }
+
+        function getAgoraLocal() {
+            const agora = new Date();
+            const dataStr = agora.getFullYear() + '-' + 
+                String(agora.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(agora.getDate()).padStart(2, '0');
+            
+            const horaStr = String(agora.getHours()).padStart(2, '0') + ':' + 
+                String(agora.getMinutes()).padStart(2, '0');
+
+            return { data: dataStr, hora: horaStr };
+        }
+
+        function setAgora(idData, idHora) {
+            const { data, hora } = getAgoraLocal();
+            if (idData) document.getElementById(idData).value = data;
+            if (idHora) document.getElementById(idHora).value = hora;
+        }
+
+        function inicializarDatas() {
+            const { data, hora } = getAgoraLocal();
+            document.getElementById('data_entrada').value = data;
+            document.getElementById('hora_entrada').value = hora;
+        }
+
+        async function carregarHistorico() {
+            try {
+                const response = await fetch('/api/registros');
+                const result = await response.json();
+                
+                const tbody = document.getElementById('tabelaHistoricoCorpo');
+                tbody.innerHTML = '';
+
+                if (result.sucesso && result.dados.length > 0) {
+                    result.dados.forEach(item => {
+                        const tr = document.createElement('tr');
+                        
+                        let saidaHtml = '';
+                        let acaoHtml = '';
+
+                        if (item.data_saida) {
+                            saidaHtml = `${item.data_saida} ${item.hora_saida}`;
+                            acaoHtml = '<span style="color: green; font-weight: bold;">Finalizado</span>';
+                        } else {
+                            saidaHtml = '<span style="color: #d9534f; font-weight: bold;">No hospital</span>';
+                            acaoHtml = `<button class="btn-saida" onclick="darSaida(${item.id})">Dar Saída Agora</button>`;
+                        }
+
+                        tr.innerHTML = `
+                            <td><b>${item.tipo_controle}</b></td>
+                            <td style="text-align: left;">${item.nome}</td>
+                            <td>${item.parentesco || '-'}</td>
+                            <td>${item.data_entrada} ${item.hora_entrada}</td>
+                            <td>${saidaHtml}</td>
+                            <td>${acaoHtml}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6">Nenhum registro encontrado.</td></tr>`;
+                }
+            } catch (err) {
+                document.getElementById('tabelaHistoricoCorpo').innerHTML = `<tr><td colspan="6" style="color: red;">Erro ao carregar dados.</td></tr>`;
+            }
+        }
+
+        async function darSaida(id) {
+            const { data, hora } = getAgoraLocal();
+            
+            try {
+                const response = await fetch(`/api/saida/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data_saida: data, hora_saida: hora })
+                });
+
+                const result = await response.json();
+                if (result.sucesso) {
+                    exibirAlerta('Saída registrada com sucesso!', 'success');
+                    carregarHistorico(); // Atualiza a tabela na hora
+                } else {
+                    exibirAlerta('Erro ao registrar saída.', 'error');
+                }
+            } catch (err) {
+                exibirAlerta('Erro na comunicação com o servidor.', 'error');
+            }
+        }
+
+        document.getElementById('formControle').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const dataObj = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/api/salvar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataObj)
+                });
+
+                const result = await response.json();
+
+                if (result.sucesso) {
+                    exibirAlerta('Entrada salva com sucesso e campos limpos!', 'success');
+                    document.getElementById('formControle').reset();
+                    inicializarDatas();
+                } else {
+                    exibirAlerta('Erro ao salvar: ' + result.erro, 'error');
+                }
+            } catch (err) {
+                exibirAlerta('Erro na comunicação com o servidor.', 'error');
+            }
+        });
+
+        function exibirAlerta(mensagem, tipo) {
+            const el = document.getElementById('msgAlert');
+            el.innerText = mensagem;
+            el.className = tipo === 'success' ? 'msg-success' : 'msg-error';
+            el.style.display = 'block';
+
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 4000);
+        }
+
+        window.onload = inicializarDatas;
+    </script>
+</body>
+</html>
+
