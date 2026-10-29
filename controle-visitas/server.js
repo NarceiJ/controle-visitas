@@ -1,7 +1,6 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// URL do CSV do Google Sheets atualizada e pública
+// URL do CSV do Google Sheets
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SXq7MT1JC-PkwaUbT9YhIvcrrmqScQd-AH_qVwOgLZeKUW3l1cJ6XY3zvg1WCpoY50mBdDn3/pub?gid=0&single=true&output=csv';
 
 // Conexão com o Banco de Dados SQLite
@@ -38,22 +37,22 @@ db.run(`
     )
 `);
 
-// Função para converter o CSV do Google Sheets em array JSON
+// Função flexível para converter o CSV do Google Sheets em JSON
 function parseCSV(csvText) {
     const lines = csvText.split(/\r?\n/);
     if (lines.length < 2) return [];
     
-    // Deteta separador (vírgula ou ponto e vírgula)
     const separator = lines[0].includes(';') ? ';' : ',';
-    
     const results = [];
+    
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
         const row = line.split(separator).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
         
-        if (row.length >= 3 && row[0]) {
+        // Se houver pelo menos o nome do paciente preenchido na coluna 0
+        if (row[0]) {
             results.push({
                 nome: row[0],
                 leito: row[1] || 'N/A',
@@ -64,22 +63,20 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota para buscar pacientes da planilha online
-app.get('/api/pacientes', (req, res) => {
-    https.get(SHEET_CSV_URL, (response) => {
-        let data = '';
-        response.on('data', chunk => data += chunk);
-        response.on('end', () => {
-            try {
-                const pacientes = parseCSV(data);
-                res.json(pacientes);
-            } catch (error) {
-                res.status(500).json({ error: 'Erro ao processar dados do Google Sheets' });
-            }
-        });
-    }).on('error', (err) => {
+// Rota para buscar pacientes usando fetch (segue redirecionamentos automaticamente)
+app.get('/api/pacientes', async (req, res) => {
+    try {
+        const response = await fetch(SHEET_CSV_URL);
+        if (!response.ok) {
+            return res.status(500).json({ error: 'Erro ao descarregar dados da planilha' });
+        }
+        const data = await response.text();
+        const pacientes = parseCSV(data);
+        res.json(pacientes);
+    } catch (error) {
+        console.error('Erro no fetch do Google Sheets:', error);
         res.status(500).json({ error: 'Erro ao conectar ao Google Sheets' });
-    });
+    }
 });
 
 // Rota para registrar uma nova entrada
