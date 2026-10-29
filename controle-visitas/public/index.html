@@ -3,435 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Visitas e Acompanhantes</title>
+    <title>Controle de Visitas - Hospital</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
+            font-family: Arial, sans-serif;
             background-color: #f4f6f9;
+            margin: 0;
             padding: 20px;
         }
-
         .container {
-            max-width: 950px;
+            max-width: 900px;
             margin: 0 auto;
-            background: #ffffff;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
-        .navbar {
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .nav-tabs button {
             background-color: #004080;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 0 15px;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .navbar a:hover, .navbar a.active {
-            background-color: #005a9c;
-        }
-
-        .section-view {
-            display: none;
-            padding: 15px;
-        }
-
-        .section-view.active {
-            display: block;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background-color: #005a9c;
-            color: white;
-            padding: 10px 12px;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: middle;
-            font-size: 13px;
-        }
-
-        .row-label {
-            width: 35%;
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        .section-header {
-            background-color: #f7f5db;
-            font-weight: bold;
-            font-size: 14px;
-            color: #111;
-            padding: 10px 12px;
-            text-transform: uppercase;
-        }
-
-        input[type="text"], 
-        select, 
-        textarea, 
-        input[type="date"], 
-        input[type="time"] {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #7f9db9;
-            border-radius: 2px;
-            font-size: 14px;
-            background-color: #fff;
-            outline: none;
-        }
-
-        textarea {
-            resize: vertical;
-            height: 40px;
-        }
-
-        .btn-container {
-            padding: 15px;
-            text-align: right;
-            background-color: #f9f9f9;
-            border-top: 1px solid #ccc;
-        }
-
-        .btn-submit {
-            background-color: #005a9c;
             color: white;
             border: none;
             padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
+            cursor: pointer;
             border-radius: 4px;
-            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
         }
-
+        .nav-tabs button.active {
+            background-color: #00264d;
+            border-bottom: 3px solid #ffcc00;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        table.form-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table.form-table th, table.form-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        table.form-table th {
+            background-color: #004080;
+            color: white;
+            text-align: left;
+        }
+        table.form-table td:first-child {
+            background-color: #f4f4f4;
+            font-weight: bold;
+            width: 30%;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-submit {
+            background-color: #004080;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            font-weight: bold;
+        }
         .btn-submit:hover {
-            background-color: #003d6b;
+            background-color: #00264d;
         }
-
-        .btn-time-now {
-            background-color: #e0e0e0;
-            border: 1px solid #999;
+        .historico-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .historico-table th, .historico-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .historico-table th {
+            background-color: #004080;
+            color: white;
+        }
+        .badge-aberto {
+            background-color: #28a745;
+            color: white;
             padding: 4px 8px;
-            font-size: 11px;
-            margin-left: 5px;
-            cursor: pointer;
-            border-radius: 3px;
+            border-radius: 4px;
+            font-size: 12px;
         }
-
+        .badge-fechado {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
         .btn-saida {
-            background-color: #d9534f;
+            background-color: #dc3545;
             color: white;
             border: none;
             padding: 5px 10px;
-            border-radius: 3px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-        }
-        .btn-saida:hover {
-            background-color: #c9302c;
-        }
-
-        .time-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
-        .history-table th, .history-table td {
-            font-size: 12px;
-            text-align: center;
-        }
-        .history-table th:nth-child(2), .history-table td:nth-child(2) {
-            text-align: left;
-        }
-
-        #msgAlert {
-            padding: 10px;
-            margin: 10px;
             border-radius: 4px;
-            font-weight: bold;
-            text-align: center;
-            display: none;
         }
-        .msg-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .msg-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="navbar">
-            <a href="#" id="linkNovo" class="active" onclick="mudarAba('novo')">➕ Registrar Entrada</a>
-            <a href="#" id="linkHistorico" onclick="mudarAba('historico'); carregarHistorico();">📋 Histórico / Dar Saída</a>
-        </div>
-
-        <div id="msgAlert"></div>
-
-        <!-- ABA 1: APENAS ENTRADA -->
-        <div id="abaNovo" class="section-view active">
-            <form id="formControle">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 35%;">Campo</th>
-                            <th>Resposta</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="row-label">Tipo de Controle</td>
-                            <td>
-                                <select id="tipo_controle" name="tipo_controle" required>
-                                    <option value="VISITA">VISITA</option>
-                                    <option value="ACOMPANHANTE">ACOMPANHANTE</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Nome Completo</td>
-                            <td>
-                                <textarea id="nome" name="nome" required placeholder="Digite o nome completo"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Grau de Parentesco</td>
-                            <td>
-                                <textarea id="parentesco" name="parentesco" placeholder="Ex: GENRO, FILHO(A), CONJUGE"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Documento de Identificação (RG ou CPF)</td>
-                            <td>
-                                <input type="text" id="documento" name="documento" placeholder="Apenas números">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Contato Telefônico</td>
-                            <td>
-                                <input type="text" id="telefone" name="telefone" placeholder="Ex: 11947810434">
-                            </td>
-                        </tr>
-
-                        <!-- SEÇÃO DE ENTRADA -->
-                        <tr>
-                            <td colspan="2" class="section-header">INFORMAÇÕES DE ENTRADA</td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Data de Entrada</td>
-                            <td>
-                                <input type="date" id="data_entrada" name="data_entrada" required>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="row-label">Horário de Entrada</td>
-                            <td>
-                                <div class="time-wrapper">
-                                    <input type="time" id="hora_entrada" name="hora_entrada" required>
-                                    <button type="button" class="btn-time-now" onclick="setAgora('data_entrada', 'hora_entrada')">Agora</button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <div class="btn-container">
-                    <button type="submit" class="btn-submit">Salvar Entrada e Limpar</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- ABA 2: HISTÓRICO COM BOTÃO DE SAÍDA -->
-        <div id="abaHistorico" class="section-view">
-            <h3 style="margin-bottom: 12px; color: #004080;">Gerenciar Saídas e Histórico</h3>
-            <div style="overflow-x: auto;">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Nome</th>
-                            <th>Parentesco</th>
-                            <th>Entrada</th>
-                            <th>Saída</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaHistoricoCorpo">
-                        <tr>
-                            <td colspan="6">Carregando...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="container">
+    <!-- Navegação por Abas -->
+    <div class="nav-tabs">
+        <button id="tabRegistrarBtn" class="active" onclick="mudarAba('registrar')">➕ Registrar Entrada</button>
+        <button id="tabHistoricoBtn" onclick="mudarAba('historico')">📋 Histórico / Dar Saída</button>
     </div>
 
-    <script>
-        function mudarAba(aba) {
-            document.getElementById('abaNovo').classList.remove('active');
-            document.getElementById('abaHistorico').classList.remove('active');
-            document.getElementById('linkNovo').classList.remove('active');
-            document.getElementById('linkHistorico').classList.remove('active');
+    <!-- SEÇÃO 1: REGISTRAR ENTRADA -->
+    <div id="secaoRegistrar" class="section active">
+        <form id="formVisita" onsubmit="salvarVisita(event)">
+            <table class="form-table">
+                <tr>
+                    <th>Campo</th>
+                    <th>Resposta</th>
+                </tr>
+                <tr>
+                    <td>Tipo de Controle</td>
+                    <td>
+                        <select id="tipo_controle" required>
+                            <option value="VISITA">VISITA</option>
+                            <option value="ACOMPANHANTE">ACOMPANHANTE</option>
+                            <option value="PRESTADOR">PRESTADOR</option>
+                        </select>
+                    </td>
+                </tr>
+                <!-- NOVO CAMPO: PACIENTE / DESTINO -->
+                <tr>
+                    <td>Paciente / Destino</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="paciente_nome" placeholder="Clique em 'Selecionar Paciente'" readonly style="background-color: #eef2f5;" required>
+                            <input type="hidden" id="paciente_leito">
+                            <input type="hidden" id="paciente_setor">
+                            <button type="button" onclick="abrirModalPacientes()" style="background-color: #004080; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; white-space: nowrap;">🔍 Selecionar</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nome Completo do Visitante</td>
+                    <td><input type="text" id="nome_completo" placeholder="Digite o nome completo" required></td>
+                </tr>
+                <tr>
+                    <td>Grau de Parentesco</td>
+                    <td><input type="text" id="parentesco" placeholder="Ex: FILHO(A), CONJUGE, AMIGO(A)"></td>
+                </tr>
+                <tr>
+                    <td>Documento (RG ou CPF)</td>
+                    <td><input type="text" id="documento" placeholder="Apenas números"></td>
+                </tr>
+                <tr>
+                    <td>Contato Telefônico</td>
+                    <td><input type="text" id="contato" placeholder="Ex: 11947810434"></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="background-color: #fdfd96; font-weight: bold;">INFORMAÇÕES DE ENTRADA</td>
+                </tr>
+                <tr>
+                    <td>Data de Entrada</td>
+                    <td><input type="text" id="data_entrada" readonly></td>
+                </tr>
+                <tr>
+                    <td>Horário de Entrada</td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="hora_entrada" readonly style="flex: 1;">
+                            <button type="button" onclick="preencherHoraAtual()" style="padding: 5px 10px; cursor: pointer;">Agora</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <button type="submit" class="btn-submit">Salvar Entrada e Limpar</button>
+        </form>
+    </div>
 
-            if (aba === 'novo') {
-                document.getElementById('abaNovo').classList.add('active');
-                document.getElementById('linkNovo').classList.add('active');
+    <!-- SEÇÃO 2: HISTÓRICO / DAR SAÍDA -->
+    <div id="secaoHistorico" class="section">
+        <h3>Histórico de Visitas e Acompanhantes</h3>
+        <div style="overflow-x: auto;">
+            <table class="historico-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Visitante</th>
+                        <th>Paciente / Setor / Leito</th>
+                        <th>Documento</th>
+                        <th>Entrada</th>
+                        <th>Saída</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaHistoricoBody">
+                    <!-- Preenchido via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- JANELA FLUTUANTE (MODAL) PARA SELEÇÃO DE PACIENTES -->
+<div id="modalPacientes" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+  <div style="background: white; width: 90%; max-width: 500px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0; color: #004080;">Selecionar Paciente Internado</h3>
+      <button onclick="fecharModalPacientes()" style="background: transparent; border: none; font-size: 20px; cursor: pointer;">✖</button>
+    </div>
+    
+    <input type="text" id="buscaPaciente" oninput="filtrarPacientes()" placeholder="Pesquisar por nome, leito ou setor..." style="width: 100%; padding: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
+
+    <div id="listaPacientesContainer" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+      <!-- Carregado dinamicamente via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+    // Preencher data e hora atuais ao carregar a página
+    window.onload = function() {
+        const agora = new Date();
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const ano = agora.getFullYear();
+        document.getElementById('data_entrada').value = `${dia}/${mes}/${ano}`;
+        preencherHoraAtual();
+    };
+
+    function preencherHoraAtual() {
+        const agora = new Date();
+        const horas = String(agora.getHours()).padStart(2, '0');
+        const minutos = String(agora.getMinutes()).padStart(2, '0');
+        document.getElementById('hora_entrada').value = `${horas}:${minutos}`;
+    }
+
+    // Alternar entre abas
+    function mudarAba(aba) {
+        document.getElementById('secaoRegistrar').classList.remove('active');
+        document.getElementById('secaoHistorico').classList.remove('active');
+        document.getElementById('tabRegistrarBtn').classList.remove('active');
+        document.getElementById('tabHistoricoBtn').classList.remove('active');
+
+        if (aba === 'registrar') {
+            document.getElementById('secaoRegistrar').classList.add('active');
+            document.getElementById('tabRegistrarBtn').classList.add('active');
+        } else {
+            document.getElementById('secaoHistorico').classList.add('active');
+            document.getElementById('tabHistoricoBtn').classList.add('active');
+            carregarHistorico();
+        }
+    }
+
+    // Enviar dados do formulário para o backend
+    async function salvarVisita(event) {
+        event.preventDefault();
+
+        const dados = {
+            tipo_controle: document.getElementById('tipo_controle').value,
+            paciente_nome: document.getElementById('paciente_nome').value,
+            paciente_leito: document.getElementById('paciente_leito').value,
+            paciente_setor: document.getElementById('paciente_setor').value,
+            nome_completo: document.getElementById('nome_completo').value,
+            parentesco: document.getElementById('parentesco').value,
+            documento: document.getElementById('documento').value,
+            contato: document.getElementById('contato').value,
+            data_entrada: document.getElementById('data_entrada').value,
+            hora_entrada: document.getElementById('hora_entrada').value
+        };
+
+        try {
+            const resposta = await fetch('/api/visitas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            if (resposta.ok) {
+                alert('Entrada registrada com sucesso!');
+                document.getElementById('formVisita').reset();
+                window.onload(); // Atualiza data/hora
             } else {
-                document.getElementById('abaHistorico').classList.add('active');
-                document.getElementById('linkHistorico').classList.add('active');
+                alert('Erro ao registrar entrada.');
             }
+        } catch (err) {
+            console.error('Erro:', err);
+            alert('Erro de conexão com o servidor.');
         }
+    }
 
-        function getAgoraLocal() {
-            const agora = new Date();
-            const dataStr = agora.getFullYear() + '-' + 
-                String(agora.getMonth() + 1).padStart(2, '0') + '-' + 
-                String(agora.getDate()).padStart(2, '0');
-            
-            const horaStr = String(agora.getHours()).padStart(2, '0') + ':' + 
-                String(agora.getMinutes()).padStart(2, '0');
+    // Carregar Histórico
+    async function carregarHistorico() {
+        try {
+            const resposta = await fetch('/api/visitas');
+            const visitas = await resposta.json();
+            const tbody = document.getElementById('tabelaHistoricoBody');
+            tbody.innerHTML = '';
 
-            return { data: dataStr, hora: horaStr };
-        }
-
-        function setAgora(idData, idHora) {
-            const { data, hora } = getAgoraLocal();
-            if (idData) document.getElementById(idData).value = data;
-            if (idHora) document.getElementById(idHora).value = hora;
-        }
-
-        function inicializarDatas() {
-            const { data, hora } = getAgoraLocal();
-            document.getElementById('data_entrada').value = data;
-            document.getElementById('hora_entrada').value = hora;
-        }
-
-        async function carregarHistorico() {
-            try {
-                const response = await fetch('/api/registros');
-                const result = await response.json();
-                
-                const tbody = document.getElementById('tabelaHistoricoCorpo');
-                tbody.innerHTML = '';
-
-                if (result.sucesso && result.dados.length > 0) {
-                    result.dados.forEach(item => {
-                        const tr = document.createElement('tr');
-                        
-                        let saidaHtml = '';
-                        let acaoHtml = '';
-
-                        if (item.data_saida) {
-                            saidaHtml = `${item.data_saida} ${item.hora_saida}`;
-                            acaoHtml = '<span style="color: green; font-weight: bold;">Finalizado</span>';
-                        } else {
-                            saidaHtml = '<span style="color: #d9534f; font-weight: bold;">No hospital</span>';
-                            acaoHtml = `<button class="btn-saida" onclick="darSaida(${item.id})">Dar Saída Agora</button>`;
-                        }
-
-                        tr.innerHTML = `
-                            <td><b>${item.tipo_controle}</b></td>
-                            <td style="text-align: left;">${item.nome}</td>
-                            <td>${item.parentesco || '-'}</td>
-                            <td>${item.data_entrada} ${item.hora_entrada}</td>
-                            <td>${saidaHtml}</td>
-                            <td>${acaoHtml}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="6">Nenhum registro encontrado.</td></tr>`;
-                }
-            } catch (err) {
-                document.getElementById('tabelaHistoricoCorpo').innerHTML = `<tr><td colspan="6" style="color: red;">Erro ao carregar dados.</td></tr>`;
+            if (visitas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum registo encontrado.</td></tr>';
+                return;
             }
+
+            visitas.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${v.id}</td>
+                    <td>${v.tipo_controle}</td>
+                    <td><strong>${v.nome_completo}</strong><br><small>${v.parentesco || ''}</small></td>
+                    <td>${v.paciente_nome || 'N/D'}</td>
+                    <td>${v.documento || '-'}</td>
+                    <td>${v.data_entrada} ${v.hora_entrada}</td>
+                    <td>${v.data_saida ? v.data_saida + ' ' + v.hora_saida : '-'}</td>
+                    <td><span class="${v.status === 'ABERTO' ? 'badge-aberto' : 'badge-fechado'}">${v.status}</span></td>
+                    <td>
+                        ${v.status === 'ABERTO' ? `<button class="btn-saida" onclick="darSaida(${v.id})">Dar Saída</button>` : '-'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            console.error('Erro ao carregar histórico:', err);
         }
+    }
 
-        async function darSaida(id) {
-            const { data, hora } = getAgoraLocal();
-            
-            try {
-                const response = await fetch(`/api/saida/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data_saida: data, hora_saida: hora })
-                });
+    // Dar Saída
+    async function darSaida(id) {
+        const agora = new Date();
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const ano = agora.getFullYear();
+        const data_saida = `${dia}/${mes}/${ano}`;
+        const horas = String(agora.getHours()).padStart(2, '0');
+        const minutos = String(agora.getMinutes()).padStart(2, '0');
+        const hora_saida = `${horas}:${minutos}`;
 
-                const result = await response.json();
-                if (result.sucesso) {
-                    exibirAlerta('Saída registrada com sucesso!', 'success');
-                    carregarHistorico(); // Atualiza a tabela na hora
-                } else {
-                    exibirAlerta('Erro ao registrar saída.', 'error');
-                }
-            } catch (err) {
-                exibirAlerta('Erro na comunicação com o servidor.', 'error');
+        try {
+            const resposta = await fetch(`/api/visitas/${id}/saida`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data_saida, hora_saida })
+            });
+
+            if (resposta.ok) {
+                carregarHistorico();
+            } else {
+                alert('Erro ao registrar saída.');
             }
+        } catch (err) {
+            console.error('Erro:', err);
+        }
+    }
+
+    // --- LÓGICA DA JANELA FLUTUANTE (MODAL) ---
+    let listaPacientesGlobal = [];
+
+    async function abrirModalPacientes() {
+        document.getElementById('modalPacientes').style.display = 'flex';
+        const container = document.getElementById('listaPacientesContainer');
+        container.innerHTML = '<div style="padding:15px; text-align:center;">A carregar pacientes do Excel Online...</div>';
+
+        try {
+            const res = await fetch('/api/pacientes');
+            listaPacientesGlobal = await res.json();
+            renderizarPacientes(listaPacientesGlobal);
+        } catch (err) {
+            container.innerHTML = '<div style="padding:15px; color:red; text-align:center;">Erro ao carregar a lista de pacientes.</div>';
+        }
+    }
+
+    function fecharModalPacientes() {
+        document.getElementById('modalPacientes').style.display = 'none';
+    }
+
+    function renderizarPacientes(pacientes) {
+        const container = document.getElementById('listaPacientesContainer');
+        if (pacientes.length === 0) {
+            container.innerHTML = '<div style="padding:15px; text-align:center;">Nenhum paciente encontrado.</div>';
+            return;
         }
 
-        document.getElementById('formControle').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        container.innerHTML = pacientes.map(p => `
+            <div onclick="selecionarPaciente('${p.nome}', '${p.leito}', '${p.setor}')" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='white'">
+                <strong>${p.nome}</strong><br>
+                <small style="color: #666;">Setor: ${p.setor} | Leito: ${p.leito}</small>
+            </div>
+        `).join('');
+    }
 
-            const formData = new FormData(this);
-            const dataObj = Object.fromEntries(formData.entries());
+    function filtrarPacientes() {
+        const termo = document.getElementById('buscaPaciente').value.toLowerCase();
+        const filtrados = listaPacientesGlobal.filter(p => 
+            p.nome.toLowerCase().includes(termo) || 
+            p.leito.toLowerCase().includes(termo) || 
+            p.setor.toLowerCase().includes(termo)
+        );
+        renderizarPacientes(filtrados);
+    }
 
-            try {
-                const response = await fetch('/api/salvar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataObj)
-                });
+    function selecionarPaciente(nome, leito, setor) {
+        document.getElementById('paciente_nome').value = `${nome} (${setor} - Leito ${leito})`;
+        document.getElementById('paciente_leito').value = leito;
+        document.getElementById('paciente_setor').value = setor;
+        fecharModalPacientes();
+    }
+</script>
 
-                const result = await response.json();
-
-                if (result.sucesso) {
-                    exibirAlerta('Entrada salva com sucesso e campos limpos!', 'success');
-                    document.getElementById('formControle').reset();
-                    inicializarDatas();
-                } else {
-                    exibirAlerta('Erro ao salvar: ' + result.erro, 'error');
-                }
-            } catch (err) {
-                exibirAlerta('Erro na comunicação com o servidor.', 'error');
-            }
-        });
-
-        function exibirAlerta(mensagem, tipo) {
-            const el = document.getElementById('msgAlert');
-            el.innerText = mensagem;
-            el.className = tipo === 'success' ? 'msg-success' : 'msg-error';
-            el.style.display = 'block';
-
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 4000);
-        }
-
-        window.onload = inicializarDatas;
-    </script>
 </body>
 </html>
-
