@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// URL do CSV do Google Sheets fornecida por ti
+// URL do CSV do Google Sheets atualizada e pública
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SXq7MT1JC-PkwaUbT9YhIvcrrmqScQd-AH_qVwOgLZeKUW3l1cJ6XY3zvg1WCpoY50mBdDn3/pub?gid=0&single=true&output=csv';
 
 // Conexão com o Banco de Dados SQLite
@@ -18,7 +18,7 @@ const db = new sqlite3.Database('./visitas.db', (err) => {
     else console.log('Conectado ao banco de dados SQLite.');
 });
 
-// Criar tabela de visitas com os campos de paciente, leito e setor
+// Criar tabela de visitas com os campos do paciente
 db.run(`
     CREATE TABLE IF NOT EXISTS visitas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,12 +38,12 @@ db.run(`
     )
 `);
 
-// Função robusta para converter o CSV do Google Sheets em array de objetos JSON
+// Função para converter o CSV do Google Sheets em array JSON
 function parseCSV(csvText) {
     const lines = csvText.split(/\r?\n/);
     if (lines.length < 2) return [];
     
-    // Deteta automaticamente o separador (vírgula ou ponto e vírgula)
+    // Deteta separador (vírgula ou ponto e vírgula)
     const separator = lines[0].includes(';') ? ';' : ',';
     
     const results = [];
@@ -51,7 +51,6 @@ function parseCSV(csvText) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Divide a linha respeitando eventuais aspas do CSV
         const row = line.split(separator).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
         
         if (row.length >= 3 && row[0]) {
@@ -65,7 +64,7 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota para buscar a lista de pacientes diretamente do Google Sheets
+// Rota para buscar pacientes da planilha online
 app.get('/api/pacientes', (req, res) => {
     https.get(SHEET_CSV_URL, (response) => {
         let data = '';
