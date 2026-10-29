@@ -37,33 +37,40 @@ db.run(`
     )
 `);
 
-// Função flexível para converter o CSV do Google Sheets em JSON
+// Função super robusta para converter CSV do Google Sheets em JSON
 function parseCSV(csvText) {
-    const lines = csvText.split(/\r?\n/);
+    // Remove o caractere invisível BOM (\ufeff) se existir
+    const cleanText = csvText.replace(/^\uFEFF/, '');
+    const lines = cleanText.split(/\r?\n/);
     if (lines.length < 2) return [];
-    
+
     const separator = lines[0].includes(';') ? ';' : ',';
     const results = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
-        
+
+        // Separa as colunas respeitando aspas
         const row = line.split(separator).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
-        
-        // Se houver pelo menos o nome do paciente preenchido na coluna 0
-        if (row[0]) {
+
+        const nome = row[0] ? row[0].trim() : '';
+        const leito = row[1] && row[1].trim() !== '' ? row[1].trim() : 'S/L';
+        const setor = row[2] && row[2].trim() !== '' ? row[2].trim() : 'Geral';
+
+        // Valida se a linha tem um nome e se não é o cabeçalho repetiu
+        if (nome && !nome.toLowerCase().includes('nome do paciente')) {
             results.push({
-                nome: row[0],
-                leito: row[1] || 'N/A',
-                setor: row[2] || 'N/A'
+                nome: nome,
+                leito: leito,
+                setor: setor
             });
         }
     }
     return results;
 }
 
-// Rota para buscar pacientes usando fetch (segue redirecionamentos automaticamente)
+// Rota para buscar pacientes usando fetch nativo
 app.get('/api/pacientes', async (req, res) => {
     try {
         const response = await fetch(SHEET_CSV_URL);
