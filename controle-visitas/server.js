@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // URL do CSV do Google Sheets fornecida por ti
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SXq7MT1JC-PkwaUbT9YhIvcrrmqScQd-AH_qVwOgLZeKUW3l1cJ6XY3zvg1WCpoY50mBdDn3/pub?output=csv';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SXq7MT1JC-PkwaUbT9YhIvcrrmqScQd-AH_qVwOgLZeKUW3l1cJ6XY3zvg1WCpoY50mBdDn3/pub?gid=0&single=true&output=csv';
 
 // Conexão com o Banco de Dados SQLite
 const db = new sqlite3.Database('./visitas.db', (err) => {
