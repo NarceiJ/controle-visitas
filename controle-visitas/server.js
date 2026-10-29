@@ -17,7 +17,7 @@ const db = new sqlite3.Database('./visitas.db', (err) => {
     else console.log('Conectado ao banco de dados SQLite.');
 });
 
-// Criar tabela de visitas com os campos do paciente
+// Criar tabela de visitas atualizada com os campos de exceção
 db.run(`
     CREATE TABLE IF NOT EXISTS visitas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,6 +29,8 @@ db.run(`
         paciente_nome TEXT,
         paciente_leito TEXT,
         paciente_setor TEXT,
+        possui_excecao TEXT,
+        motivo_excecao TEXT,
         data_entrada TEXT,
         hora_entrada TEXT,
         data_saida TEXT,
@@ -37,9 +39,8 @@ db.run(`
     )
 `);
 
-// Função super robusta para converter CSV do Google Sheets em JSON
+// Função robusta para converter o CSV do Google Sheets em JSON
 function parseCSV(csvText) {
-    // Remove o caractere invisível BOM (\ufeff) se existir
     const cleanText = csvText.replace(/^\uFEFF/, '');
     const lines = cleanText.split(/\r?\n/);
     if (lines.length < 2) return [];
@@ -51,14 +52,12 @@ function parseCSV(csvText) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Separa as colunas respeitando aspas
         const row = line.split(separator).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
 
         const nome = row[0] ? row[0].trim() : '';
         const leito = row[1] && row[1].trim() !== '' ? row[1].trim() : 'S/L';
         const setor = row[2] && row[2].trim() !== '' ? row[2].trim() : 'Geral';
 
-        // Valida se a linha tem um nome e se não é o cabeçalho repetiu
         if (nome && !nome.toLowerCase().includes('nome do paciente')) {
             results.push({
                 nome: nome,
@@ -70,7 +69,7 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota para buscar pacientes usando fetch nativo
+// Rota para buscar pacientes do Google Sheets
 app.get('/api/pacientes', async (req, res) => {
     try {
         const response = await fetch(SHEET_CSV_URL);
@@ -86,21 +85,26 @@ app.get('/api/pacientes', async (req, res) => {
     }
 });
 
-// Rota para registrar uma nova entrada
+// Rota para registrar uma nova entrada (com exceção)
 app.post('/api/visitas', (req, res) => {
     const { 
         tipo_controle, nome_completo, parentesco, documento, 
         contato, paciente_nome, paciente_leito, paciente_setor, 
-        data_entrada, hora_entrada 
+        possui_excecao, motivo_excecao, data_entrada, hora_entrada 
     } = req.body;
 
     const sql = `
         INSERT INTO visitas 
-        (tipo_controle, nome_completo, parentesco, documento, contato, paciente_nome, paciente_leito, paciente_setor, data_entrada, hora_entrada)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (tipo_controle, nome_completo, parentesco, documento, contato, paciente_nome, paciente_leito, paciente_setor, possui_excecao, motivo_excecao, data_entrada, hora_entrada)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    db.run(sql, [tipo_controle, nome_completo, parentesco, documento, contato, paciente_nome, paciente_leito, paciente_setor, data_entrada, hora_entrada], function(err) {
+    db.run(sql, [
+        tipo_controle, nome_completo, parentesco, documento, contato, 
+        paciente_nome, paciente_leito, paciente_setor, 
+        possui_excecao ? 'SIM' : 'NÃO', motivo_excecao || '-', 
+        data_entrada, hora_entrada
+    ], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ id: this.lastID, status: 'Sucesso' });
     });
