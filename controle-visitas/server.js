@@ -1,74 +1,120 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const https = require('https');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Configurar banco de dados SQLite local
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// URL do CSV do Google Sheets fornecida por ti
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SXq7MT1JC-PkwaUbT9YhIvcrrmqScQd-AH_qVwOgLZeKUW3l1cJ6XY3zvg1WCpoY50mBdDn3/pub?output=csv';
+
+// Conexão com o Banco de Dados SQLite
 const db = new sqlite3.Database('./visitas.db', (err) => {
-    if (err) console.error('Erro ao abrir o banco de dados', err.message);
+    if (err) console.error('Erro ao conectar ao SQLite:', err.message);
     else console.log('Conectado ao banco de dados SQLite.');
 });
 
-// Criar tabela se não existir (saida começa vazia/null)
-db.run(`CREATE TABLE IF NOT EXISTS registros (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_controle TEXT,
-    nome TEXT,
-    parentesco TEXT,
-    documento TEXT,
-    telefone TEXT,
-    data_entrada TEXT,
-    hora_entrada TEXT,
-    data_saida TEXT,
-    hora_saida TEXT
-)`);
+// Criar tabela de visitas com os campos de paciente, leito e setor
+db.run(`
+    CREATE TABLE IF NOT EXISTS visitas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tipo_controle TEXT,
+        nome_completo TEXT,
+        parentesco TEXT,
+        documento TEXT,
+        contato TEXT,
+        paciente_nome TEXT,
+        paciente_leito TEXT,
+        paciente_setor TEXT,
+        data_entrada TEXT,
+        hora_entrada TEXT,
+        data_saida TEXT,
+        hora_saida TEXT,
+        status TEXT DEFAULT 'ABERTO'
+    )
+`);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Rota para salvar apenas a ENTRADA
-app.post('/api/salvar', (req, res) => {
-    const { tipo_controle, nome, parentesco, documento, telefone, data_entrada, hora_entrada } = req.body;
+// Função para converter o CSV do Google Sheets em array de objetos JSON
+function parseCSV(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return [];
     
-    const query = `INSERT INTO registros (tipo_controle, nome, parentesco, documento, telefone, data_entrada, hora_entrada, data_saida, hora_saida) VALUES (?, ?, ?, ?, ?, ?, ?, '', '')`;
-    
-    db.run(query, [tipo_controle, nome, parentesco, documento, telefone, data_entrada, hora_entrada], function(err) {
-        if (err) {
-            return res.status(500).json({ sucesso: false, erro: err.message });
+    const results = [];
+    for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(',').map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
+        if (row.length >= 3 && row[0]) {
+            results.push({
+                nome: row[0],
+                leito: row[1] || 'N/A',
+                setor: row[2] || 'N/A'
+            });
         }
-        res.json({ sucesso: true, id: this.lastID });
+    }
+    return results;
+}
+
+// Rota para buscar a lista de pacientes diretamente do Google Sheets
+app.get('/api/pacientes', (req, res) => {
+    https.get(SHEET_CSV_URL, (response) => {
+        let data = '';
+        response.on('data', chunk => data += chunk);
+        response.on('end', () => {
+            try {
+                const pacientes = parseCSV(data);
+                res.json(pacientes);
+            } catch (error) {
+                res.status(500).json({ error: 'Erro ao processar dados do Google Sheets' });
+            }
+        });
+    }).on('error', (err) => {
+        res.status(500).json({ error: 'Erro ao conectar ao Google Sheets' });
     });
 });
 
-// Rota para consultar os registros
-app.get('/api/registros', (req, res) => {
-    db.all(`SELECT * FROM registros ORDER BY id DESC`, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ sucesso: false, erro: err.message });
-        }
-        res.json({ sucesso: true, dados: rows });
+// Rota para registrar uma nova entrada (agora com dados do paciente)
+app.post('/api/visitas', (req, res) => {
+    const { 
+        tipo_controle, nome_completo, parentesco, documento, 
+        contato, paciente_nome, paciente_leito, paciente_setor, 
+        data_entrada, hora_entrada 
+    } = req.body;
+
+    const sql = `
+        INSERT INTO visitas 
+        (tipo_controle, nome_completo, parentesco, documento, contato, paciente_nome, paciente_leito, paciente_setor, data_entrada, hora_entrada)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(sql, [tipo_controle, nome_completo, parentesco, documento, contato, paciente_nome, paciente_leito, paciente_setor, data_entrada, hora_entrada], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ id: this.lastID, status: 'Sucesso' });
     });
 });
 
-// Rota para registrar a SAÍDA pelo Histórico
-app.post('/api/saida/:id', (req, res) => {
+// Rota para listar histórico
+app.get('/api/visitas', (req, res) => {
+    db.all("SELECT * FROM visitas ORDER BY id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Rota para registrar saída
+app.put('/api/visitas/:id/saida', (req, res) => {
     const { id } = req.params;
     const { data_saida, hora_saida } = req.body;
-
-    const query = `UPDATE registros SET data_saida = ?, hora_saida = ? WHERE id = ?`;
-
-    db.run(query, [data_saida, hora_saida, id], function(err) {
-        if (err) {
-            return res.status(500).json({ sucesso: false, erro: err.message });
-        }
-        res.json({ sucesso: true });
+    
+    const sql = `UPDATE visitas SET data_saida = ?, hora_saida = ?, status = 'FECHADO' WHERE id = ?`;
+    db.run(sql, [data_saida, hora_saida, id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ status: 'Saída registrada com sucesso' });
     });
 });
 
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
-
