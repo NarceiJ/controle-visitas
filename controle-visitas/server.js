@@ -38,14 +38,22 @@ db.run(`
     )
 `);
 
-// Função para converter o CSV do Google Sheets em array de objetos JSON
+// Função robusta para converter o CSV do Google Sheets em array de objetos JSON
 function parseCSV(csvText) {
-    const lines = csvText.trim().split('\n');
+    const lines = csvText.split(/\r?\n/);
     if (lines.length < 2) return [];
+    
+    // Deteta automaticamente o separador (vírgula ou ponto e vírgula)
+    const separator = lines[0].includes(';') ? ';' : ',';
     
     const results = [];
     for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(',').map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Divide a linha respeitando eventuais aspas do CSV
+        const row = line.split(separator).map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
+        
         if (row.length >= 3 && row[0]) {
             results.push({
                 nome: row[0],
@@ -75,7 +83,7 @@ app.get('/api/pacientes', (req, res) => {
     });
 });
 
-// Rota para registrar uma nova entrada (agora com dados do paciente)
+// Rota para registrar uma nova entrada
 app.post('/api/visitas', (req, res) => {
     const { 
         tipo_controle, nome_completo, parentesco, documento, 
