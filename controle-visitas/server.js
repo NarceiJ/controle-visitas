@@ -21,9 +21,7 @@ const db = new sqlite3.Database('./visitas.db', (err) => {
     }
 });
 
-// Criar tabelas e inserir utilizador padrão se não existir
 function inicializarBancoDeDados() {
-    // Tabela de Visitas
     db.run(`
         CREATE TABLE IF NOT EXISTS visitas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +43,6 @@ function inicializarBancoDeDados() {
         )
     `);
 
-    // Tabela de Utilizadores (Login permanente no SQLite)
     db.run(`
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,10 +50,8 @@ function inicializarBancoDeDados() {
             senha TEXT
         )
     `, () => {
-        // Verificar se já existe algum utilizador cadastrado
         db.get("SELECT COUNT(*) as total FROM usuarios", (err, row) => {
             if (row && row.total === 0) {
-                // Insere o utilizador padrão inicial
                 db.run("INSERT INTO usuarios (usuario, senha) VALUES (?, ?)", ['recepcao', 'hospital123'], (err) => {
                     if (!err) console.log('Utilizador padrão criado no SQLite: recepcao / hospital123');
                 });
@@ -65,7 +60,6 @@ function inicializarBancoDeDados() {
     });
 }
 
-// Função robusta para converter o CSV do Google Sheets em JSON
 function parseCSV(csvText) {
     const cleanText = csvText.replace(/^\uFEFF/, '');
     const lines = cleanText.split(/\r?\n/);
@@ -95,15 +89,12 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota para validar o login consultando a tabela 'usuarios' do SQLite
+// Rota de login
 app.post('/api/login', (req, res) => {
     const { usuario, senha } = req.body;
-    
     const sql = `SELECT * FROM usuarios WHERE usuario = ? AND senha = ?`;
     db.get(sql, [usuario, senha], (err, row) => {
-        if (err) {
-            return res.status(500).json({ sucesso: false, mensagem: 'Erro interno no servidor' });
-        }
+        if (err) return res.status(500).json({ sucesso: false, mensagem: 'Erro interno' });
         if (row) {
             res.json({ sucesso: true, mensagem: 'Login autorizado' });
         } else {
@@ -112,23 +103,41 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Rota para buscar pacientes do Google Sheets
+// Rota para listar utilizadores
+app.get('/api/usuarios', (req, res) => {
+    db.all("SELECT id, usuario FROM usuarios ORDER BY id DESC", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// Rota para registar novo utilizador
+app.post('/api/usuarios', (req, res) => {
+    const { usuario, senha } = req.body;
+    if (!usuario || !senha) {
+        return res.status(400).json({ error: 'Preencha todos os campos' });
+    }
+
+    const sql = `INSERT INTO usuarios (usuario, senha) VALUES (?, ?)`;
+    db.run(sql, [usuario, senha], function(err) {
+        if (err) {
+            return res.status(400).json({ error: 'Este nome de utilizador já existe.' });
+        }
+        res.json({ id: this.lastID, sucesso: true });
+    });
+});
+
 app.get('/api/pacientes', async (req, res) => {
     try {
         const response = await fetch(SHEET_CSV_URL);
-        if (!response.ok) {
-            return res.status(500).json({ error: 'Erro ao descarregar dados da planilha' });
-        }
+        if (!response.ok) return res.status(500).json({ error: 'Erro ao descarregar dados' });
         const data = await response.text();
-        const pacientes = parseCSV(data);
-        res.json(pacientes);
+        res.json(parseCSV(data));
     } catch (error) {
-        console.error('Erro no fetch do Google Sheets:', error);
         res.status(500).json({ error: 'Erro ao conectar ao Google Sheets' });
     }
 });
 
-// Rota para registrar uma nova entrada (com exceção)
 app.post('/api/visitas', (req, res) => {
     const { 
         tipo_controle, nome_completo, parentesco, documento, 
@@ -153,7 +162,6 @@ app.post('/api/visitas', (req, res) => {
     });
 });
 
-// Rota para listar histórico
 app.get('/api/visitas', (req, res) => {
     db.all("SELECT * FROM visitas ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -161,7 +169,6 @@ app.get('/api/visitas', (req, res) => {
     });
 });
 
-// Rota para registrar saída
 app.put('/api/visitas/:id/saida', (req, res) => {
     const { id } = req.params;
     const { data_saida, hora_saida } = req.body;
