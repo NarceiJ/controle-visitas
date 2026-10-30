@@ -89,7 +89,7 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota de login
+// Rota de login consultando o SQLite
 app.post('/api/login', (req, res) => {
     const { usuario, senha } = req.body;
     const sql = `SELECT * FROM usuarios WHERE usuario = ? AND senha = ?`;
@@ -124,6 +124,23 @@ app.post('/api/usuarios', (req, res) => {
             return res.status(400).json({ error: 'Este nome de utilizador já existe.' });
         }
         res.json({ id: this.lastID, sucesso: true });
+    });
+});
+
+// Rota para alterar a senha de um utilizador existente
+app.put('/api/usuarios/senha', (req, res) => {
+    const { usuario, nova_senha } = req.body;
+    if (!usuario || !nova_senha) {
+        return res.status(400).json({ error: 'Preencha todos os campos' });
+    }
+
+    const sql = `UPDATE usuarios SET senha = ? WHERE usuario = ?`;
+    db.run(sql, [nova_senha, usuario], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Utilizador não encontrado.' });
+        }
+        res.json({ sucesso: true, mensagem: 'Senha alterada com sucesso!' });
     });
 });
 
