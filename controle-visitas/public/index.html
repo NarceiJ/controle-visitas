@@ -19,7 +19,6 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        /* Tela de Login */
         #telaLogin {
             display: flex;
             justify-content: center;
@@ -58,16 +57,12 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .btn-login:hover {
-            background-color: #00264d;
-        }
         .erro-login {
             color: red;
             font-size: 14px;
             margin-top: 10px;
             display: none;
         }
-        /* Resto do Layout */
         .app-content {
             display: none;
         }
@@ -98,10 +93,10 @@
             background-color: #004080;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 15px;
             cursor: pointer;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
         }
         .nav-tabs button.active {
@@ -151,9 +146,6 @@
             width: 100%;
             font-weight: bold;
         }
-        .btn-submit:hover {
-            background-color: #00264d;
-        }
         .historico-table {
             width: 100%;
             border-collapse: collapse;
@@ -169,36 +161,10 @@
             background-color: #004080;
             color: white;
         }
-        .badge-aberto {
-            background-color: #28a745;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        .badge-fechado {
-            background-color: #6c757d;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        .badge-excecao {
-            background-color: #ffc107;
-            color: #000;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        .btn-saida {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
+        .badge-aberto { background-color: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-fechado { background-color: #6c757d; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-excecao { background-color: #ffc107; color: #000; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .btn-saida { background-color: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -226,17 +192,15 @@
     <!-- Navegação por Abas -->
     <div class="nav-tabs">
         <button id="tabRegistrarBtn" class="active" onclick="mudarAba('registrar')">➕ Registrar Entrada</button>
-        <button id="tabHistoricoBtn" onclick="mudarAba('historico')">📋 Histórico / Dar Saída</button>
+        <button id="tabHistoricoBtn" onclick="mudarAba('historico')">📋 Histórico</button>
+        <button id="tabUsuariosBtn" onclick="mudarAba('usuarios')">👤 Gerir Utilizadores</button>
     </div>
 
     <!-- SEÇÃO 1: REGISTRAR ENTRADA -->
     <div id="secaoRegistrar" class="section active">
         <form id="formVisita" onsubmit="salvarVisita(event)">
             <table class="form-table">
-                <tr>
-                    <th>Campo</th>
-                    <th>Resposta</th>
-                </tr>
+                <tr><th>Campo</th><th>Resposta</th></tr>
                 <tr>
                     <td>Tipo de Controle</td>
                     <td>
@@ -270,29 +234,12 @@
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <td>Nome Completo do Visitante</td>
-                    <td><input type="text" id="nome_completo" placeholder="Digite o nome completo" required></td>
-                </tr>
-                <tr>
-                    <td>Grau de Parentesco</td>
-                    <td><input type="text" id="parentesco" placeholder="Ex: FILHO(A), CÔNJUGE, AMIGO(A)"></td>
-                </tr>
-                <tr>
-                    <td>Documento (RG ou CPF)</td>
-                    <td><input type="text" id="documento" placeholder="Apenas números"></td>
-                </tr>
-                <tr>
-                    <td>Contato Telefônico</td>
-                    <td><input type="text" id="contato" placeholder="Ex: 11947810434"></td>
-                </tr>
-                <tr>
-                    <td colspan="2" style="background-color: #fdfd96; font-weight: bold;">INFORMAÇÕES DE ENTRADA</td>
-                </tr>
-                <tr>
-                    <td>Data de Entrada</td>
-                    <td><input type="text" id="data_entrada" readonly></td>
-                </tr>
+                <tr><td>Nome Completo do Visitante</td><td><input type="text" id="nome_completo" placeholder="Digite o nome completo" required></td></tr>
+                <tr><td>Grau de Parentesco</td><td><input type="text" id="parentesco" placeholder="Ex: FILHO(A), CÔNJUGE"></td></tr>
+                <tr><td>Documento (RG ou CPF)</td><td><input type="text" id="documento" placeholder="Apenas números"></td></tr>
+                <tr><td>Contato Telefônico</td><td><input type="text" id="contato" placeholder="Ex: 11947810434"></td></tr>
+                <tr><td colspan="2" style="background-color: #fdfd96; font-weight: bold;">INFORMAÇÕES DE ENTRADA</td></tr>
+                <tr><td>Data de Entrada</td><td><input type="text" id="data_entrada" readonly></td></tr>
                 <tr>
                     <td>Horário de Entrada</td>
                     <td>
@@ -307,45 +254,52 @@
         </form>
     </div>
 
-    <!-- SEÇÃO 2: HISTÓRICO / DAR SAÍDA -->
+    <!-- SEÇÃO 2: HISTÓRICO -->
     <div id="secaoHistorico" class="section">
         <h3>Histórico de Visitas e Acompanhantes</h3>
         <div style="overflow-x: auto;">
             <table class="historico-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Visitante</th>
-                        <th>Paciente / Setor / Leito</th>
-                        <th>Documento</th>
-                        <th>Entrada</th>
-                        <th>Saída</th>
-                        <th>Status</th>
-                        <th>Ação</th>
+                        <th>ID</th><th>Tipo</th><th>Visitante</th><th>Paciente / Setor / Leito</th>
+                        <th>Documento</th><th>Entrada</th><th>Saída</th><th>Status</th><th>Ação</th>
                     </tr>
                 </thead>
-                <tbody id="tabelaHistoricoBody">
-                    <!-- Preenchido via JavaScript -->
-                </tbody>
+                <tbody id="tabelaHistoricoBody"></tbody>
             </table>
         </div>
     </div>
+
+    <!-- SEÇÃO 3: GERIR UTILIZADORES -->
+    <div id="secaoUsuarios" class="section">
+        <h3>Cadastrar Novo Utilizador do Sistema</h3>
+        <form id="formNovoUsuario" onsubmit="criarUsuario(event)" style="margin-bottom: 30px;">
+            <table class="form-table">
+                <tr><td>Novo Utilizador</td><td><input type="text" id="novo_usuario" placeholder="Ex: recepcao2" required></td></tr>
+                <tr><td>Senha</td><td><input type="password" id="nova_senha" placeholder="Senha segura" required></td></tr>
+            </table>
+            <button type="submit" class="btn-submit" style="background-color: #28a745;">💾 Cadastrar Novo Utilizador</button>
+        </form>
+
+        <h3>Utilizadores Autorizados</h3>
+        <table class="historico-table">
+            <thead>
+                <tr><th>ID</th><th>Nome de Utilizador</th></tr>
+            </thead>
+            <tbody id="tabelaUsuariosBody"></tbody>
+        </table>
+    </div>
 </div>
 
-<!-- JANELA FLUTUANTE (MODAL) PARA SELEÇÃO DE PACIENTES -->
+<!-- MODAL DE PACIENTES -->
 <div id="modalPacientes" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
   <div style="background: white; width: 90%; max-width: 500px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <h3 style="margin: 0; color: #004080;">Selecionar Paciente Internado</h3>
       <button onclick="fecharModalPacientes()" style="background: transparent; border: none; font-size: 20px; cursor: pointer;">✖</button>
     </div>
-    
     <input type="text" id="buscaPaciente" oninput="filtrarPacientes()" placeholder="Pesquisar por nome, leito ou setor..." style="width: 100%; padding: 10px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;">
-
-    <div id="listaPacientesContainer" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
-      <!-- Carregado dinamicamente via JS -->
-    </div>
+    <div id="listaPacientesContainer" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;"></div>
   </div>
 </div>
 
@@ -368,9 +322,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ usuario, senha })
             });
-
             const resultado = await resposta.json();
-
             if (resultado.sucesso) {
                 localStorage.setItem('logado', 'true');
                 mostrarApp();
@@ -378,7 +330,6 @@
                 erroDiv.style.display = 'block';
             }
         } catch (err) {
-            console.error('Erro de login:', err);
             erroDiv.innerText = 'Erro de conexão com o servidor';
             erroDiv.style.display = 'block';
         }
@@ -387,7 +338,6 @@
     function mostrarApp() {
         document.getElementById('telaLogin').style.display = 'none';
         document.getElementById('appContent').style.display = 'block';
-        
         const agora = new Date();
         const dia = String(agora.getDate()).padStart(2, '0');
         const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -411,35 +361,66 @@
     function toggleCampoExcecao() {
         const checkbox = document.getElementById('possui_excecao');
         const inputMotivo = document.getElementById('motivo_excecao');
-        if (checkbox.checked) {
-            inputMotivo.style.display = 'block';
-            inputMotivo.required = true;
-        } else {
-            inputMotivo.style.display = 'none';
-            inputMotivo.value = '';
-            inputMotivo.required = false;
-        }
+        inputMotivo.style.display = checkbox.checked ? 'block' : 'none';
+        inputMotivo.required = checkbox.checked;
+        if (!checkbox.checked) inputMotivo.value = '';
     }
 
     function mudarAba(aba) {
-        document.getElementById('secaoRegistrar').classList.remove('active');
-        document.getElementById('secaoHistorico').classList.remove('active');
-        document.getElementById('tabRegistrarBtn').classList.remove('active');
-        document.getElementById('tabHistoricoBtn').classList.remove('active');
+        ['secaoRegistrar', 'secaoHistorico', 'secaoUsuarios'].forEach(s => document.getElementById(s).classList.remove('active'));
+        ['tabRegistrarBtn', 'tabHistoricoBtn', 'tabUsuariosBtn'].forEach(b => document.getElementById(b).classList.remove('active'));
 
         if (aba === 'registrar') {
             document.getElementById('secaoRegistrar').classList.add('active');
             document.getElementById('tabRegistrarBtn').classList.add('active');
-        } else {
+        } else if (aba === 'historico') {
             document.getElementById('secaoHistorico').classList.add('active');
             document.getElementById('tabHistoricoBtn').classList.add('active');
             carregarHistorico();
+        } else if (aba === 'usuarios') {
+            document.getElementById('secaoUsuarios').classList.add('active');
+            document.getElementById('tabUsuariosBtn').classList.add('active');
+            carregarUsuarios();
+        }
+    }
+
+    async function criarUsuario(event) {
+        event.preventDefault();
+        const usuario = document.getElementById('novo_usuario').value;
+        const senha = document.getElementById('nova_senha').value;
+
+        try {
+            const res = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha })
+            });
+            const data = await res.json();
+            if (data.sucesso) {
+                alert('Utilizador cadastrado com sucesso!');
+                document.getElementById('formNovoUsuario').reset();
+                carregarUsuarios();
+            } else {
+                alert(data.error || 'Erro ao cadastrar utilizador.');
+            }
+        } catch (err) {
+            alert('Erro de conexão.');
+        }
+    }
+
+    async function carregarUsuarios() {
+        try {
+            const res = await fetch('/api/usuarios');
+            const usuarios = await res.json();
+            const tbody = document.getElementById('tabelaUsuariosBody');
+            tbody.innerHTML = usuarios.map(u => `<tr><td>${u.id}</td><td><strong>${u.usuario}</strong></td></tr>`).join('');
+        } catch (err) {
+            console.error('Erro ao carregar utilizadores');
         }
     }
 
     async function salvarVisita(event) {
         event.preventDefault();
-
         const dados = {
             tipo_controle: document.getElementById('tipo_controle').value,
             paciente_nome: document.getElementById('paciente_nome').value,
@@ -461,7 +442,6 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dados)
             });
-
             if (resposta.ok) {
                 alert('Entrada registrada com sucesso!');
                 document.getElementById('formVisita').reset();
@@ -471,8 +451,7 @@
                 alert('Erro ao registrar entrada.');
             }
         } catch (err) {
-            console.error('Erro:', err);
-            alert('Erro de conexão com o servidor.');
+            alert('Erro de conexão.');
         }
     }
 
@@ -481,36 +460,28 @@
             const resposta = await fetch('/api/visitas');
             const visitas = await resposta.json();
             const tbody = document.getElementById('tabelaHistoricoBody');
-            tbody.innerHTML = '';
-
             if (visitas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Nenhum registo encontrado.</td></tr>';
                 return;
             }
-
-            visitas.forEach(v => {
-                const badgeExcecao = v.possui_excecao === 'SIM' 
-                    ? `<br><span class="badge-excecao" title="${v.motivo_excecao}">⚠️ Exceção: ${v.motivo_excecao}</span>` 
-                    : '';
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${v.id}</td>
-                    <td>${v.tipo_controle}</td>
-                    <td><strong>${v.nome_completo}</strong><br><small>${v.parentesco || ''}</small></td>
-                    <td>${v.paciente_nome || 'N/D'}${badgeExcecao}</td>
-                    <td>${v.documento || '-'}</td>
-                    <td>${v.data_entrada} ${v.hora_entrada}</td>
-                    <td>${v.data_saida ? v.data_saida + ' ' + v.hora_saida : '-'}</td>
-                    <td><span class="${v.status === 'ABERTO' ? 'badge-aberto' : 'badge-fechado'}">${v.status}</span></td>
-                    <td>
-                        ${v.status === 'ABERTO' ? `<button class="btn-saida" onclick="darSaida(${v.id})">Dar Saída</button>` : '-'}
-                    </td>
+            tbody.innerHTML = visitas.map(v => {
+                const badgeExcecao = v.possui_excecao === 'SIM' ? `<br><span class="badge-excecao" title="${v.motivo_excecao}">⚠️ Exceção: ${v.motivo_excecao}</span>` : '';
+                return `
+                    <tr>
+                        <td>${v.id}</td>
+                        <td>${v.tipo_controle}</td>
+                        <td><strong>${v.nome_completo}</strong><br><small>${v.parentesco || ''}</small></td>
+                        <td>${v.paciente_nome || 'N/D'}${badgeExcecao}</td>
+                        <td>${v.documento || '-'}</td>
+                        <td>${v.data_entrada} ${v.hora_entrada}</td>
+                        <td>${v.data_saida ? v.data_saida + ' ' + v.hora_saida : '-'}</td>
+                        <td><span class="${v.status === 'ABERTO' ? 'badge-aberto' : 'badge-fechado'}">${v.status}</span></td>
+                        <td>${v.status === 'ABERTO' ? `<button class="btn-saida" onclick="darSaida(${v.id})">Dar Saída</button>` : '-'}</td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
-            });
+            }).join('');
         } catch (err) {
-            console.error('Erro ao carregar histórico:', err);
+            console.error('Erro ao carregar histórico');
         }
     }
 
@@ -525,19 +496,14 @@
         const hora_saida = `${horas}:${minutos}`;
 
         try {
-            const resposta = await fetch(`/api/visitas/${id}/saida`, {
+            await fetch(`/api/visitas/${id}/saida`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ data_saida, hora_saida })
             });
-
-            if (resposta.ok) {
-                carregarHistorico();
-            } else {
-                alert('Erro ao registrar saída.');
-            }
+            carregarHistorico();
         } catch (err) {
-            console.error('Erro:', err);
+            console.error('Erro ao dar saída');
         }
     }
 
@@ -546,14 +512,13 @@
     async function abrirModalPacientes() {
         document.getElementById('modalPacientes').style.display = 'flex';
         const container = document.getElementById('listaPacientesContainer');
-        container.innerHTML = '<div style="padding:15px; text-align:center;">A carregar pacientes do Excel Online...</div>';
-
+        container.innerHTML = '<div style="padding:15px; text-align:center;">A carregar pacientes...</div>';
         try {
             const res = await fetch('/api/pacientes');
             listaPacientesGlobal = await res.json();
             renderizarPacientes(listaPacientesGlobal);
         } catch (err) {
-            container.innerHTML = '<div style="padding:15px; color:red; text-align:center;">Erro ao carregar a lista de pacientes.</div>';
+            container.innerHTML = '<div style="padding:15px; color:red; text-align:center;">Erro ao carregar pacientes.</div>';
         }
     }
 
@@ -567,11 +532,9 @@
             container.innerHTML = '<div style="padding:15px; text-align:center;">Nenhum paciente encontrado.</div>';
             return;
         }
-
         container.innerHTML = pacientes.map(p => `
             <div onclick="selecionarPaciente('${p.nome}', '${p.leito}', '${p.setor}')" style="padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;" onmouseover="this.style.background='#f0f7ff'" onmouseout="this.style.background='white'">
-                <strong>${p.nome}</strong><br>
-                <small style="color: #666;">Setor: ${p.setor} | Leito: ${p.leito}</small>
+                <strong>${p.nome}</strong><br><small style="color: #666;">Setor: ${p.setor} | Leito: ${p.leito}</small>
             </div>
         `).join('');
     }
