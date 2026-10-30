@@ -169,10 +169,10 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
+<!-- TELA DE LOGIN (Corrigido de "Controlo" para "Controle") -->
 <div id="telaLogin">
     <div class="login-box">
-        <h2>🔒 Controlo de Visitas</h2>
+        <h2>🔒 Controle de Visitas</h2>
         <form onsubmit="fazerLogin(event)">
             <input type="text" id="loginUsuario" placeholder="Utilizador" required>
             <input type="password" id="loginSenha" placeholder="Senha" required>
@@ -193,7 +193,8 @@
     <div class="nav-tabs">
         <button id="tabRegistrarBtn" class="active" onclick="mudarAba('registrar')">➕ Registrar Entrada</button>
         <button id="tabHistoricoBtn" onclick="mudarAba('historico')">📋 Histórico</button>
-        <button id="tabUsuariosBtn" onclick="mudarAba('usuarios')">👤 Gerir Utilizadores</button>
+        <!-- A aba de utilizadores só aparece para ADMIN -->
+        <button id="tabUsuariosBtn" onclick="mudarAba('usuarios')" style="display: none;">👤 Gerir Utilizadores</button>
     </div>
 
     <!-- SEÇÃO 1: REGISTRAR ENTRADA -->
@@ -270,7 +271,7 @@
         </div>
     </div>
 
-    <!-- SEÇÃO 3: GERIR UTILIZADORES -->
+    <!-- SEÇÃO 3: GERIR UTILIZADORES (Exclusivo ADMIN) -->
     <div id="secaoUsuarios" class="section">
         <h3>Cadastrar Novo Utilizador</h3>
         <form id="formNovoUsuario" onsubmit="criarUsuario(event)" style="margin-bottom: 30px;">
@@ -300,7 +301,7 @@
         <h3>Utilizadores Autorizados</h3>
         <table class="historico-table">
             <thead>
-                <tr><th>ID</th><th>Nome de Utilizador</th></tr>
+                <tr><th>ID</th><th>Nome de Utilizador</th><th>Nível</th></tr>
             </thead>
             <tbody id="tabelaUsuariosBody"></tbody>
         </table>
@@ -341,6 +342,8 @@
             const resultado = await resposta.json();
             if (resultado.sucesso) {
                 localStorage.setItem('logado', 'true');
+                localStorage.setItem('nivel', resultado.nivel);
+                localStorage.setItem('usuario', resultado.usuario);
                 mostrarApp();
             } else {
                 erroDiv.style.display = 'block';
@@ -354,6 +357,13 @@
     function mostrarApp() {
         document.getElementById('telaLogin').style.display = 'none';
         document.getElementById('appContent').style.display = 'block';
+
+        // Verificar permissão de Administrador
+        const nivel = localStorage.getItem('nivel');
+        if (nivel === 'ADMIN') {
+            document.getElementById('tabUsuariosBtn').style.display = 'block';
+        }
+
         const agora = new Date();
         const dia = String(agora.getDate()).padStart(2, '0');
         const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -363,7 +373,7 @@
     }
 
     function fazerLogout() {
-        localStorage.removeItem('logado');
+        localStorage.clear();
         location.reload();
     }
 
@@ -384,7 +394,10 @@
 
     function mudarAba(aba) {
         ['secaoRegistrar', 'secaoHistorico', 'secaoUsuarios'].forEach(s => document.getElementById(s).classList.remove('active'));
-        ['tabRegistrarBtn', 'tabHistoricoBtn', 'tabUsuariosBtn'].forEach(b => document.getElementById(b).classList.remove('active'));
+        ['tabRegistrarBtn', 'tabHistoricoBtn', 'tabUsuariosBtn'].forEach(b => {
+            const btn = document.getElementById(b);
+            if (btn) btn.classList.remove('active');
+        });
 
         if (aba === 'registrar') {
             document.getElementById('secaoRegistrar').classList.add('active');
@@ -454,7 +467,7 @@
             const usuarios = await res.json();
             
             const tbody = document.getElementById('tabelaUsuariosBody');
-            tbody.innerHTML = usuarios.map(u => `<tr><td>${u.id}</td><td><strong>${u.usuario}</strong></td></tr>`).join('');
+            tbody.innerHTML = usuarios.map(u => `<tr><td>${u.id}</td><td><strong>${u.usuario}</strong></td><td>${u.nivel}</td></tr>`).join('');
 
             const selectAlt = document.getElementById('select_usuario_alt');
             selectAlt.innerHTML = '<option value="">Selecione o utilizador...</option>' + 
@@ -573,7 +586,7 @@
 
     function renderizarPacientes(pacientes) {
         const container = document.getElementById('listaPacientesContainer');
-        if (pacientes.length === 0) {
+        if (pacientes.length === '0' || pacientes.length === 0) {
             container.innerHTML = '<div style="padding:15px; text-align:center;">Nenhum paciente encontrado.</div>';
             return;
         }
