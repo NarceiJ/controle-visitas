@@ -272,13 +272,29 @@
 
     <!-- SEÇÃO 3: GERIR UTILIZADORES -->
     <div id="secaoUsuarios" class="section">
-        <h3>Cadastrar Novo Utilizador do Sistema</h3>
+        <h3>Cadastrar Novo Utilizador</h3>
         <form id="formNovoUsuario" onsubmit="criarUsuario(event)" style="margin-bottom: 30px;">
             <table class="form-table">
-                <tr><td>Novo Utilizador</td><td><input type="text" id="novo_usuario" placeholder="Ex: recepcao2" required></td></tr>
-                <tr><td>Senha</td><td><input type="password" id="nova_senha" placeholder="Senha segura" required></td></tr>
+                <tr><td>Nome de Utilizador</td><td><input type="text" id="novo_usuario" placeholder="Ex: recepcao2" required></td></tr>
+                <tr><td>Senha Inicial</td><td><input type="password" id="nova_senha" placeholder="Senha segura" required></td></tr>
             </table>
-            <button type="submit" class="btn-submit" style="background-color: #28a745;">💾 Cadastrar Novo Utilizador</button>
+            <button type="submit" class="btn-submit" style="background-color: #28a745;">💾 Cadastrar Utilizador</button>
+        </form>
+
+        <h3 style="margin-top: 40px;">🔑 Alterar Senha de Utilizador</h3>
+        <form id="formAltSenha" onsubmit="alterarSenha(event)" style="margin-bottom: 30px;">
+            <table class="form-table">
+                <tr>
+                    <td>Selecionar Utilizador</td>
+                    <td>
+                        <select id="select_usuario_alt" required>
+                            <option value="">A carregar utilizadores...</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr><td>Nova Senha</td><td><input type="password" id="alt_nova_senha" placeholder="Nova senha" required></td></tr>
+            </table>
+            <button type="submit" class="btn-submit" style="background-color: #ffc107; color: #000;">🔄 Atualizar Senha</button>
         </form>
 
         <h3>Utilizadores Autorizados</h3>
@@ -408,12 +424,41 @@
         }
     }
 
+    async function alterarSenha(event) {
+        event.preventDefault();
+        const usuario = document.getElementById('select_usuario_alt').value;
+        const nova_senha = document.getElementById('alt_nova_senha').value;
+
+        try {
+            const res = await fetch('/api/usuarios/senha', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, nova_senha })
+            });
+            const data = await res.json();
+            if (data.sucesso) {
+                alert('Senha alterada com sucesso!');
+                document.getElementById('formAltSenha').reset();
+                carregarUsuarios();
+            } else {
+                alert(data.error || 'Erro ao alterar senha.');
+            }
+        } catch (err) {
+            alert('Erro de conexão.');
+        }
+    }
+
     async function carregarUsuarios() {
         try {
             const res = await fetch('/api/usuarios');
             const usuarios = await res.json();
+            
             const tbody = document.getElementById('tabelaUsuariosBody');
             tbody.innerHTML = usuarios.map(u => `<tr><td>${u.id}</td><td><strong>${u.usuario}</strong></td></tr>`).join('');
+
+            const selectAlt = document.getElementById('select_usuario_alt');
+            selectAlt.innerHTML = '<option value="">Selecione o utilizador...</option>' + 
+                usuarios.map(u => `<option value="${u.usuario}">${u.usuario}</option>`).join('');
         } catch (err) {
             console.error('Erro ao carregar utilizadores');
         }
