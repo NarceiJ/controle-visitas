@@ -47,13 +47,15 @@ function inicializarBancoDeDados() {
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario TEXT UNIQUE,
-            senha TEXT
+            senha TEXT,
+            nivel TEXT DEFAULT 'COMUM'
         )
     `, () => {
         db.get("SELECT COUNT(*) as total FROM usuarios", (err, row) => {
             if (row && row.total === 0) {
-                db.run("INSERT INTO usuarios (usuario, senha) VALUES (?, ?)", ['recepcao', 'hospital123'], (err) => {
-                    if (!err) console.log('Utilizador padrão criado no SQLite: recepcao / hospital123');
+                // Cria o ADMIN padrão inicial
+                db.run("INSERT INTO usuarios (usuario, senha, nivel) VALUES (?, ?, ?)", ['recepcao', 'hospital123', 'ADMIN'], (err) => {
+                    if (!err) console.log('Utilizador ADMIN padrão criado no SQLite: recepcao / hospital123');
                 });
             }
         });
@@ -89,14 +91,14 @@ function parseCSV(csvText) {
     return results;
 }
 
-// Rota de login consultando o SQLite
+// Rota de login devolvendo também o nível de acesso do utilizador
 app.post('/api/login', (req, res) => {
     const { usuario, senha } = req.body;
-    const sql = `SELECT * FROM usuarios WHERE usuario = ? AND senha = ?`;
+    const sql = `SELECT usuario, nivel FROM usuarios WHERE usuario = ? AND senha = ?`;
     db.get(sql, [usuario, senha], (err, row) => {
         if (err) return res.status(500).json({ sucesso: false, mensagem: 'Erro interno' });
         if (row) {
-            res.json({ sucesso: true, mensagem: 'Login autorizado' });
+            res.json({ sucesso: true, nivel: row.nivel, usuario: row.usuario });
         } else {
             res.status(401).json({ sucesso: false, mensagem: 'Utilizador ou senha incorretos' });
         }
@@ -105,20 +107,20 @@ app.post('/api/login', (req, res) => {
 
 // Rota para listar utilizadores
 app.get('/api/usuarios', (req, res) => {
-    db.all("SELECT id, usuario FROM usuarios ORDER BY id DESC", [], (err, rows) => {
+    db.all("SELECT id, usuario, nivel FROM usuarios ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
-// Rota para registar novo utilizador
+// Rota para registar novo utilizador (Sempre criado como COMUM por segurança)
 app.post('/api/usuarios', (req, res) => {
     const { usuario, senha } = req.body;
     if (!usuario || !senha) {
         return res.status(400).json({ error: 'Preencha todos os campos' });
     }
 
-    const sql = `INSERT INTO usuarios (usuario, senha) VALUES (?, ?)`;
+    const sql = `INSERT INTO usuarios (usuario, senha, nivel) VALUES (?, ?, 'COMUM')`;
     db.run(sql, [usuario, senha], function(err) {
         if (err) {
             return res.status(400).json({ error: 'Este nome de utilizador já existe.' });
@@ -127,7 +129,7 @@ app.post('/api/usuarios', (req, res) => {
     });
 });
 
-// Rota para alterar a senha de um utilizador existente
+// Rota para alterar a senha
 app.put('/api/usuarios/senha', (req, res) => {
     const { usuario, nova_senha } = req.body;
     if (!usuario || !nova_senha) {
