@@ -13,31 +13,57 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTbFEV2SX
 
 // Conexão com o Banco de Dados SQLite
 const db = new sqlite3.Database('./visitas.db', (err) => {
-    if (err) console.error('Erro ao conectar ao SQLite:', err.message);
-    else console.log('Conectado ao banco de dados SQLite.');
+    if (err) {
+        console.error('Erro ao conectar ao SQLite:', err.message);
+    } else {
+        console.log('Conectado ao banco de dados SQLite.');
+        inicializarBancoDeDados();
+    }
 });
 
-// Criar tabela de visitas atualizada com os campos de exceção
-db.run(`
-    CREATE TABLE IF NOT EXISTS visitas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tipo_controle TEXT,
-        nome_completo TEXT,
-        parentesco TEXT,
-        documento TEXT,
-        contato TEXT,
-        paciente_nome TEXT,
-        paciente_leito TEXT,
-        paciente_setor TEXT,
-        possui_excecao TEXT,
-        motivo_excecao TEXT,
-        data_entrada TEXT,
-        hora_entrada TEXT,
-        data_saida TEXT,
-        hora_saida TEXT,
-        status TEXT DEFAULT 'ABERTO'
-    )
-`);
+// Criar tabelas e inserir utilizador padrão se não existir
+function inicializarBancoDeDados() {
+    // Tabela de Visitas
+    db.run(`
+        CREATE TABLE IF NOT EXISTS visitas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo_controle TEXT,
+            nome_completo TEXT,
+            parentesco TEXT,
+            documento TEXT,
+            contato TEXT,
+            paciente_nome TEXT,
+            paciente_leito TEXT,
+            paciente_setor TEXT,
+            possui_excecao TEXT,
+            motivo_excecao TEXT,
+            data_entrada TEXT,
+            hora_entrada TEXT,
+            data_saida TEXT,
+            hora_saida TEXT,
+            status TEXT DEFAULT 'ABERTO'
+        )
+    `);
+
+    // Tabela de Utilizadores (Login permanente no SQLite)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT UNIQUE,
+            senha TEXT
+        )
+    `, () => {
+        // Verificar se já existe algum utilizador cadastrado
+        db.get("SELECT COUNT(*) as total FROM usuarios", (err, row) => {
+            if (row && row.total === 0) {
+                // Insere o utilizador padrão inicial
+                db.run("INSERT INTO usuarios (usuario, senha) VALUES (?, ?)", ['recepcao', 'hospital123'], (err) => {
+                    if (!err) console.log('Utilizador padrão criado no SQLite: recepcao / hospital123');
+                });
+            }
+        });
+    });
+}
 
 // Função robusta para converter o CSV do Google Sheets em JSON
 function parseCSV(csvText) {
@@ -68,6 +94,23 @@ function parseCSV(csvText) {
     }
     return results;
 }
+
+// Rota para validar o login consultando a tabela 'usuarios' do SQLite
+app.post('/api/login', (req, res) => {
+    const { usuario, senha } = req.body;
+    
+    const sql = `SELECT * FROM usuarios WHERE usuario = ? AND senha = ?`;
+    db.get(sql, [usuario, senha], (err, row) => {
+        if (err) {
+            return res.status(500).json({ sucesso: false, mensagem: 'Erro interno no servidor' });
+        }
+        if (row) {
+            res.json({ sucesso: true, mensagem: 'Login autorizado' });
+        } else {
+            res.status(401).json({ sucesso: false, mensagem: 'Utilizador ou senha incorretos' });
+        }
+    });
+});
 
 // Rota para buscar pacientes do Google Sheets
 app.get('/api/pacientes', async (req, res) => {
